@@ -2,123 +2,138 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Werkbon Pixia</title>
     <script src="https://cdnjs.cloudflare.com"></script>
 
     <style>
-        body { font-family: 'Helvetica', Arial, sans-serif; margin: 0; background: #f4f4f4; color: #333; }
-        .wrapper { max-width: 850px; margin: 20px auto; background: #fff; padding: 40px; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; margin: 0; background: #f0f0f0; color: #333; }
+        .wrapper { max-width: 800px; margin: 0 auto; background: #fff; padding: 25px; box-sizing: border-box; }
         
-        .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
-        .logo { max-width: 180px; height: auto; }
-        .company-info { text-align: right; font-size: 12px; line-height: 1.4; color: #555; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #222; padding-bottom: 15px; margin-bottom: 20px; }
+        .logo { max-width: 140px; height: auto; }
+        .company-info { text-align: right; font-size: 11px; line-height: 1.3; color: #444; }
         
-        .title-section { text-align: center; margin-bottom: 30px; }
-        .title-section h1 { margin: 0; font-size: 28px; letter-spacing: 2px; text-transform: uppercase; color: #000; }
+        .title-section { text-align: center; margin: 20px 0; }
+        .title-section h1 { margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px; }
 
-        h2 { font-size: 16px; margin-top: 25px; border-bottom: 1px solid #eee; padding-bottom: 5px; text-transform: uppercase; color: #444; }
-        label { display: block; font-weight: bold; font-size: 12px; margin-bottom: 5px; color: #666; }
+        h2 { font-size: 15px; margin-top: 20px; border-bottom: 1px solid #ddd; padding-bottom: 5px; text-transform: uppercase; color: #222; }
+        label { display: block; font-weight: bold; font-size: 12px; margin-bottom: 4px; color: #555; }
         
-        input, textarea, .dynamic-text { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
-        textarea { min-height: 100px; resize: none; overflow: hidden; }
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #bbb; border-radius: 4px; font-size: 16px; box-sizing: border-box; appearance: none; }
         
-        /* Zorgt dat in de PDF alle tekst zichtbaar is */
-        .dynamic-text { display: none; white-space: pre-wrap; min-height: 100px; }
+        /* Dynamische hoogte voor textarea */
+        .auto-expand { min-height: 100px; overflow: hidden; resize: none; }
 
-        .row { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 5px; }
-        .col { flex: 1; min-width: 200px; }
-        
-        .signature-box { border: 1px solid #ccc; background: #fafafa; border-radius: 4px; position: relative; height: 180px; margin-top: 10px; }
-        #signatureCanvas { width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
-        #signatureImage { display: none; width: 100%; height: 100%; object-fit: contain; }
+        /* PDF display velden (onzichtbaar op scherm) */
+        .pdf-only { display: none; white-space: pre-wrap; word-wrap: break-word; padding: 10px; border: 1px solid #eee; margin-bottom: 12px; font-size: 14px; background: #fafafa; }
 
-        .buttons { margin: 30px auto; text-align: center; max-width: 850px; }
-        button { padding: 12px 24px; margin: 5px; border: none; background: #222; color: #fff; cursor: pointer; border-radius: 5px; font-weight: bold; }
-        button:hover { background: #444; }
+        .row { display: flex; gap: 15px; flex-wrap: wrap; }
+        .col { flex: 1; min-width: 140px; }
         
-        @media print { .buttons { display: none; } .wrapper { box-shadow: none; margin: 0; width: 100%; } }
+        .signature-area { position: relative; border: 1px solid #bbb; background: #fdfdfd; border-radius: 4px; height: 180px; margin-top: 5px; touch-action: none; }
+        #signatureCanvas { width: 100%; height: 100%; touch-action: none; }
+        #signatureSnapshot { display: none; width: 100%; height: 100%; object-fit: contain; }
+
+        .buttons { padding: 20px; text-align: center; background: #eee; position: sticky; bottom: 0; border-top: 1px solid #ccc; display: flex; justify-content: center; gap: 10px; }
+        button { padding: 15px 20px; border: none; background: #222; color: #fff; cursor: pointer; border-radius: 6px; font-weight: bold; flex: 1; max-width: 200px; font-size: 14px; }
+        button.sec { background: #777; }
+
+        @media (max-width: 600px) {
+            .header { flex-direction: column; text-align: left; }
+            .company-info { text-align: left; margin-top: 10px; }
+            .wrapper { padding: 15px; }
+        }
     </style>
 </head>
 <body>
 
-<div class="wrapper" id="werkbon">
-    <div class="header">
-        <img src="https://via.placeholder.com" alt="Pixia" class="logo">
-        <div class="company-info">
-            <strong>Pixia B.V.</strong><br>
-            De Limiet 19, 4131 NR Vianen<br>
-            T: +31 (0) 30 – 303 99 00<br>
-            KvK: 60362359 | BTW: NL 8538.76.149 B01
+<div id="content-to-export">
+    <div class="wrapper" id="werkbon">
+        <div class="header">
+            <img src="https://via.placeholder.com" alt="Pixia" class="logo">
+            <div class="company-info">
+                <strong>Pixia B.V.</strong><br>
+                De Limiet 19, 4131 NR Vianen<br>
+                T: +31 (0) 30 – 303 99 00<br>
+                KvK: 60362359 | BTW: NL 8538.76.149 B01
+            </div>
         </div>
-    </div>
 
-    <div class="title-section">
-        <h1>Werkbon</h1>
-    </div>
+        <div class="title-section">
+            <h1>Werkbon</h1>
+        </div>
 
-    <h2>Klantgegevens</h2>
-    <textarea id="klantData" placeholder="Bedrijfsnaam en adres klant..."></textarea>
-    <div id="klantDataDisplay" class="dynamic-text"></div>
+        <h2>Klantgegevens</h2>
+        <textarea id="klantInput" class="auto-expand" placeholder="Bedrijfsnaam en adres..."></textarea>
+        <div id="klantPDF" class="pdf-only"></div>
 
-    <h2>Werkzaamheden</h2>
-    <div class="row">
-        <div class="col">
-            <label>Datum vanaf</label>
-            <input type="date">
+        <h2>Werkzaamheden</h2>
+        <div class="row">
+            <div class="col">
+                <label>Datum vanaf</label>
+                <input type="date" id="datumVan">
+            </div>
+            <div class="col">
+                <label>Datum tot/met</label>
+                <input type="date" id="datumTot">
+            </div>
         </div>
-        <div class="col">
-            <label>Datum tot/met</label>
-            <input type="date">
-        </div>
-    </div>
-    <textarea id="werkOmschr" placeholder="Omschrijf de werkzaamheden..." oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
-    <div id="werkOmschrDisplay" class="dynamic-text"></div>
+        <textarea id="werkInput" class="auto-expand" placeholder="Wat heb je gedaan?" oninput="autoGrow(this)"></textarea>
+        <div id="werkPDF" class="pdf-only"></div>
 
-    <div class="row">
-        <div class="col">
-            <label>Totaal gewerkte uren</label>
-            <input type="number" step="0.25" placeholder="0.00">
+        <div class="row">
+            <div class="col">
+                <label>Uren</label>
+                <input type="number" step="0.25" placeholder="0.00">
+            </div>
+            <div class="col">
+                <label>Kosten (€)</label>
+                <input type="number" step="0.01" placeholder="0.00">
+            </div>
         </div>
-        <div class="col">
-            <label>Materialen / Overige kosten (€)</label>
-            <input type="number" step="0.01" placeholder="0.00">
-        </div>
-    </div>
 
-    <h2>Ondertekening</h2>
-    <div class="row">
-        <div class="col">
-            <label>Plaats</label>
-            <input type="text" placeholder="Naam stad">
+        <h2>Ondertekening</h2>
+        <div class="row">
+            <div class="col">
+                <label>Plaats</label>
+                <input type="text" id="plaats">
+            </div>
+            <div class="col">
+                <label>Datum</label>
+                <input type="date" id="tekenDatum">
+            </div>
         </div>
-        <div class="col">
-            <label>Datum tekenen</label>
-            <input type="date" id="currentDate">
-        </div>
-    </div>
 
-    <label>Handtekening Klant</label>
-    <div class="signature-box">
-        <canvas id="signatureCanvas"></canvas>
-        <img id="signatureImage" alt="Handtekening">
+        <label>Handtekening Klant</label>
+        <div class="signature-area">
+            <canvas id="signatureCanvas"></canvas>
+            <img id="signatureSnapshot">
+        </div>
     </div>
 </div>
 
 <div class="buttons">
-    <button style="background:#888" onclick="clearSignature()">Wis handtekening</button>
-    <button onclick="savePDF()">Opslaan als PDF</button>
+    <button class="sec" onclick="clearSig()">Wis</button>
+    <button onclick="downloadPDF()">Opslaan als PDF</button>
 </div>
 
 <script>
     const canvas = document.getElementById("signatureCanvas");
     const ctx = canvas.getContext("2d");
+    const snapshotImg = document.getElementById("signatureSnapshot");
     let drawing = false;
 
-    document.getElementById('currentDate').valueAsDate = new Date();
+    // Stel datum van vandaag in
+    document.getElementById('tekenDatum').valueAsDate = new Date();
+
+    function autoGrow(element) {
+        element.style.height = "5px";
+        element.style.height = (element.scrollHeight) + "px";
+    }
 
     function resizeCanvas() {
-        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        const ratio = window.devicePixelRatio || 1;
         canvas.width = canvas.offsetWidth * ratio;
         canvas.height = canvas.offsetHeight * ratio;
         ctx.scale(ratio, ratio);
@@ -126,87 +141,84 @@
         ctx.lineCap = "round";
         ctx.strokeStyle = "#000";
     }
-
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
-    function getPos(e) {
+    // Teken logica (Muis & Touch)
+    function getEventPos(e) {
         const rect = canvas.getBoundingClientRect();
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         return { x: clientX - rect.left, y: clientY - rect.top };
     }
 
-    function startDrawing(e) {
+    function startDraw(e) {
         drawing = true;
-        const pos = getPos(e);
+        const pos = getEventPos(e);
         ctx.beginPath();
         ctx.moveTo(pos.x, pos.y);
-        if(e.cancelable) e.preventDefault();
+        if(e.touches) e.preventDefault();
     }
 
-    function draw(e) {
+    function doDraw(e) {
         if (!drawing) return;
-        const pos = getPos(e);
+        const pos = getEventPos(e);
         ctx.lineTo(pos.x, pos.y);
         ctx.stroke();
-        if(e.cancelable) e.preventDefault();
+        if(e.touches) e.preventDefault();
     }
 
-    canvas.addEventListener("mousedown", startDrawing);
-    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mousedown", startDraw);
+    canvas.addEventListener("mousemove", doDraw);
     window.addEventListener("mouseup", () => drawing = false);
-    canvas.addEventListener("touchstart", startDrawing, {passive: false});
-    canvas.addEventListener("touchmove", draw, {passive: false});
+    canvas.addEventListener("touchstart", startDraw, {passive: false});
+    canvas.addEventListener("touchmove", doDraw, {passive: false});
     canvas.addEventListener("touchend", () => drawing = false);
 
-    function clearSignature() {
+    function clearSig() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        document.getElementById('signatureImage').style.display = 'none';
-        canvas.style.display = 'block';
+        snapshotImg.style.display = "none";
+        canvas.style.display = "block";
     }
 
-    async function savePDF() {
-        const element = document.getElementById("werkbon");
-        const sigImage = document.getElementById('signatureImage');
-        
-        // 1. Handtekening fix: Canvas omzetten naar afbeelding
-        sigImage.src = canvas.toDataURL("image/png");
-        sigImage.style.display = 'block';
-        canvas.style.display = 'none';
+    async function downloadPDF() {
+        // 1. Voorbereiden tekstvelden
+        const kIn = document.getElementById('klantInput');
+        const kPdf = document.getElementById('klantPDF');
+        kPdf.innerText = kIn.value;
+        kPdf.style.display = 'block'; kIn.style.display = 'none';
 
-        // 2. Dynamische tekst fix: Textareas omzetten naar DIVs
-        const klText = document.getElementById('klantData');
-        const klDisp = document.getElementById('klantDataDisplay');
-        klDisp.innerText = klText.value;
-        klDisp.style.display = 'block';
-        klText.style.display = 'none';
+        const wIn = document.getElementById('werkInput');
+        const wPdf = document.getElementById('werkPDF');
+        wPdf.innerText = wIn.value;
+        wPdf.style.display = 'block'; wIn.style.display = 'none';
 
-        const wkText = document.getElementById('werkOmschr');
-        const wkDisp = document.getElementById('werkOmschrDisplay');
-        wkDisp.innerText = wkText.value;
-        wkDisp.style.display = 'block';
-        wkText.style.display = 'none';
+        // 2. Voorbereiden handtekening
+        const dataUrl = canvas.toDataURL("image/png");
+        snapshotImg.src = dataUrl;
+        snapshotImg.style.display = "block";
+        canvas.style.display = "none";
 
-        // 3. PDF Genereren
+        // 3. PDF Opties
+        const element = document.getElementById('content-to-export');
         const opt = {
-            margin: 10,
+            margin: [10, 5, 10, 5],
             filename: 'Werkbon_Pixia.pdf',
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, logging: false },
+            html2canvas: { scale: 2, useCORS: true, letterRendering: true },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
         try {
             await html2pdf().set(opt).from(element).save();
+        } catch (err) {
+            alert("Er ging iets mis bij het maken van de PDF.");
         } finally {
-            // Alles weer terugzetten naar invoermodus
-            sigImage.style.display = 'none';
-            canvas.style.display = 'block';
-            klDisp.style.display = 'none';
-            klText.style.display = 'block';
-            wkDisp.style.display = 'none';
-            wkText.style.display = 'block';
+            // Alles herstellen
+            kPdf.style.display = 'none'; kIn.style.display = 'block';
+            wPdf.style.display = 'none'; wIn.style.display = 'block';
+            snapshotImg.style.display = "none";
+            canvas.style.display = "block";
         }
     }
 </script>
