@@ -20,19 +20,22 @@
         h2 { font-size: 16px; margin-top: 25px; border-bottom: 1px solid #eee; padding-bottom: 5px; text-transform: uppercase; color: #444; }
         label { display: block; font-weight: bold; font-size: 12px; margin-bottom: 5px; color: #666; }
         
-        input, textarea { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
-        textarea { min-height: 80px; resize: vertical; }
+        input, textarea, .dynamic-text { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+        textarea { min-height: 100px; resize: none; overflow: hidden; }
         
+        /* Zorgt dat in de PDF alle tekst zichtbaar is */
+        .dynamic-text { display: none; white-space: pre-wrap; min-height: 100px; }
+
         .row { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 5px; }
         .col { flex: 1; min-width: 200px; }
         
-        .signature-box { border: 1px solid #ccc; background: #fafafa; border-radius: 4px; cursor: crosshair; touch-action: none; height: 160px; margin-top: 10px; }
-        canvas { width: 100%; height: 100%; display: block; }
-        
+        .signature-box { border: 1px solid #ccc; background: #fafafa; border-radius: 4px; position: relative; height: 180px; margin-top: 10px; }
+        #signatureCanvas { width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
+        #signatureImage { display: none; width: 100%; height: 100%; object-fit: contain; }
+
         .buttons { margin: 30px auto; text-align: center; max-width: 850px; }
         button { padding: 12px 24px; margin: 5px; border: none; background: #222; color: #fff; cursor: pointer; border-radius: 5px; font-weight: bold; }
         button:hover { background: #444; }
-        button.secondary { background: #888; }
         
         @media print { .buttons { display: none; } .wrapper { box-shadow: none; margin: 0; width: 100%; } }
     </style>
@@ -40,7 +43,6 @@
 <body>
 
 <div class="wrapper" id="werkbon">
-    <!-- Header met Logo en Bedrijfsgegevens -->
     <div class="header">
         <img src="https://via.placeholder.com" alt="Pixia" class="logo">
         <div class="company-info">
@@ -51,13 +53,13 @@
         </div>
     </div>
 
-    <!-- Titel Werkbon -->
     <div class="title-section">
         <h1>Werkbon</h1>
     </div>
 
     <h2>Klantgegevens</h2>
-    <textarea placeholder="Bedrijfsnaam, contactpersoon en adres van de klant..."></textarea>
+    <textarea id="klantData" placeholder="Bedrijfsnaam en adres klant..."></textarea>
+    <div id="klantDataDisplay" class="dynamic-text"></div>
 
     <h2>Werkzaamheden</h2>
     <div class="row">
@@ -70,16 +72,17 @@
             <input type="date">
         </div>
     </div>
-    <textarea placeholder="Gedetailleerde omschrijving van de werkzaamheden..."></textarea>
+    <textarea id="werkOmschr" placeholder="Omschrijf de werkzaamheden..." oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
+    <div id="werkOmschrDisplay" class="dynamic-text"></div>
 
     <div class="row">
         <div class="col">
             <label>Totaal gewerkte uren</label>
-            <input type="number" step="0.25" placeholder="0,00">
+            <input type="number" step="0.25" placeholder="0.00">
         </div>
         <div class="col">
             <label>Materialen / Overige kosten (€)</label>
-            <input type="number" step="0.01" placeholder="0,00">
+            <input type="number" step="0.01" placeholder="0.00">
         </div>
     </div>
 
@@ -98,13 +101,13 @@
     <label>Handtekening Klant</label>
     <div class="signature-box">
         <canvas id="signatureCanvas"></canvas>
+        <img id="signatureImage" alt="Handtekening">
     </div>
 </div>
 
 <div class="buttons">
-    <button class="secondary" onclick="clearSignature()">Wis handtekening</button>
+    <button style="background:#888" onclick="clearSignature()">Wis handtekening</button>
     <button onclick="savePDF()">Opslaan als PDF</button>
-    <button onclick="window.print()">Printen</button>
 </div>
 
 <script>
@@ -112,7 +115,6 @@
     const ctx = canvas.getContext("2d");
     let drawing = false;
 
-    // Zet de datum van vandaag als standaard bij ondertekening
     document.getElementById('currentDate').valueAsDate = new Date();
 
     function resizeCanvas() {
@@ -130,10 +132,9 @@
 
     function getPos(e) {
         const rect = canvas.getBoundingClientRect();
-        if (e.touches && e.touches.length > 0) {
-            return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
-        }
-        return { x: e.offsetX, y: e.offsetY };
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
     }
 
     function startDrawing(e) {
@@ -141,12 +142,7 @@
         const pos = getPos(e);
         ctx.beginPath();
         ctx.moveTo(pos.x, pos.y);
-        if(e.type === 'touchstart') e.preventDefault();
-    }
-
-    function stopDrawing() {
-        drawing = false;
-        ctx.closePath();
+        if(e.cancelable) e.preventDefault();
     }
 
     function draw(e) {
@@ -154,31 +150,64 @@
         const pos = getPos(e);
         ctx.lineTo(pos.x, pos.y);
         ctx.stroke();
-        if(e.type === 'touchmove') e.preventDefault();
+        if(e.cancelable) e.preventDefault();
     }
 
     canvas.addEventListener("mousedown", startDrawing);
     canvas.addEventListener("mousemove", draw);
-    window.addEventListener("mouseup", stopDrawing);
-
+    window.addEventListener("mouseup", () => drawing = false);
     canvas.addEventListener("touchstart", startDrawing, {passive: false});
     canvas.addEventListener("touchmove", draw, {passive: false});
-    canvas.addEventListener("touchend", stopDrawing);
+    canvas.addEventListener("touchend", () => drawing = false);
 
     function clearSignature() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        document.getElementById('signatureImage').style.display = 'none';
+        canvas.style.display = 'block';
     }
 
-    function savePDF() {
+    async function savePDF() {
         const element = document.getElementById("werkbon");
+        const sigImage = document.getElementById('signatureImage');
+        
+        // 1. Handtekening fix: Canvas omzetten naar afbeelding
+        sigImage.src = canvas.toDataURL("image/png");
+        sigImage.style.display = 'block';
+        canvas.style.display = 'none';
+
+        // 2. Dynamische tekst fix: Textareas omzetten naar DIVs
+        const klText = document.getElementById('klantData');
+        const klDisp = document.getElementById('klantDataDisplay');
+        klDisp.innerText = klText.value;
+        klDisp.style.display = 'block';
+        klText.style.display = 'none';
+
+        const wkText = document.getElementById('werkOmschr');
+        const wkDisp = document.getElementById('werkOmschrDisplay');
+        wkDisp.innerText = wkText.value;
+        wkDisp.style.display = 'block';
+        wkText.style.display = 'none';
+
+        // 3. PDF Genereren
         const opt = {
-            margin:       [10, 10],
-            filename:     'Werkbon_Pixia.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, logging: false, useCORS: true },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            margin: 10,
+            filename: 'Werkbon_Pixia.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, logging: false },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
-        html2pdf().set(opt).from(element).save();
+
+        try {
+            await html2pdf().set(opt).from(element).save();
+        } finally {
+            // Alles weer terugzetten naar invoermodus
+            sigImage.style.display = 'none';
+            canvas.style.display = 'block';
+            klDisp.style.display = 'none';
+            klText.style.display = 'block';
+            wkDisp.style.display = 'none';
+            wkText.style.display = 'block';
+        }
     }
 </script>
 
