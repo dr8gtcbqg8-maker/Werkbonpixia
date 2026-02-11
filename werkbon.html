@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Werkbon – Pixia B.V.</title>
+
+<!-- html2pdf -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+
+/* DEFAULT RESET */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    color: #222;
+}
+
+/* CONTAINER */
+#werkbon-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 20px auto;
+    background: white;
+    padding: 15px;
+}
+
+/* HEADER */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.logo {
+    max-width: 160px;
+    height: auto;
+}
+
+.company-info {
+    text-align: right;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* TITLES */
+h1 {
+    font-size: 24px;
+    text-transform: uppercase;
+    margin: 0 0 15px;
+}
+
+/* FORM FIELDS */
+label {
+    font-weight: bold;
+    margin-top: 10px;
+    display: block;
+    font-size: 14px;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+textarea {
+    resize: vertical;
+}
+
+/* GRID LAYOUT */
+.grid {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 1fr 1fr;
+}
+
+@media only screen and (max-width: 600px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* HANDTEKENING */
+.signature-wrapper {
+    border: 1px dashed #999;
+    border-radius: 5px;
+    height: 180px;
+    position: relative;
+    cursor: pointer;
+}
+
+.hint {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #888;
+    font-size: 14px;
+    pointer-events: none;
+}
+
+/* BUTTONS */
+.actions {
+    margin: 20px 0;
+    display: flex;
+    gap: 10px;
+}
+
+button {
+    padding: 12px;
+    font-size: 15px;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.save {
+    background: #2ecc71;
+}
+
+.mail {
+    background: #3498db;
+}
+
+/* MODAL */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 999;
+    padding: 20px;
+}
+
+.modal-content {
+    background: white;
+    height: 90%;
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+#modalCanvas {
+    flex: 1;
+    border: 2px solid #333;
+    background: white;
+    touch-action: none;
+}
+
+/* PRINT STYLES */
+@media print {
+    .actions, .modal, .hint {
+        display: none !important;
+    }
+    body {
+        background: white;
+    }
+    #werkbon-container {
+        margin: 0;
+        padding: 0;
+    }
+}
+</style>
+
+</head>
+
+<body>
+
+<div id="werkbon-container">
+
+    <!-- HEADER -->
+    <div class="header">
+        <img src="https://via.placeholder.com/160x60?text=Pixia+Logo" class="logo">
+        <div class="company-info">
+            <strong>Pixia B.V.</strong><br>
+            De Limiet 19<br>
+            4131 NR Vianen<br>
+            +31 (0) 30 – 303 99 00<br>
+            KvK: 60362359<br>
+            BTW: NL 8538.76.149 B01
+        </div>
+    </div>
+
+    <h1>Werkbon</h1>
+
+    <!-- DATUMS -->
+    <div class="grid">
+        <div>
+            <label>Datum van</label>
+            <input type="date">
+        </div>
+        <div>
+            <label>Datum tot</label>
+            <input type="date">
+        </div>
+    </div>
+
+    <!-- KLANTGEGEVENS -->
+    <label>Klant / bedrijfsgegevens</label>
+    <textarea rows="5"></textarea>
+
+    <label>E-mailadres klant</label>
+    <input type="email" id="email">
+
+    <label>Werkzaamheden</label>
+    <textarea rows="4"></textarea>
+
+    <!-- UREN & MATERIALEN -->
+    <div class="grid">
+        <div>
+            <label>Totaal gewerkte uren</label>
+            <input type="number" step="0.25">
+        </div>
+        <div>
+            <label>Materialen / Overige kosten</label>
+            <input type="text">
+        </div>
+    </div>
+
+    <!-- HANDTEKENING -->
+    <div class="signature-block">
+        <label>Handtekening klant</label>
+
+        <div class="grid">
+            <div>
+                <label>Plaats</label>
+                <input type="text">
+            </div>
+            <div>
+                <label>Datum</label>
+                <input type="date">
+            </div>
+        </div>
+
+        <div class="signature-wrapper" onclick="openModal()">
+            <canvas id="signature"></canvas>
+            <div class="hint" id="hintText">Klik om te ondertekenen</div>
+        </div>
+    </div>
+
+</div>
+
+<!-- BUTTONS -->
+<div class="actions">
+    <button class="save" onclick="maakPDF()">Opslaan als PDF</button>
+    <button class="mail" onclick="verstuurMail()">Verstuur via Outlook</button>
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="signatureModal">
+    <div class="modal-content">
+        <canvas id="modalCanvas"></canvas>
+        <div class="actions">
+            <button class="save" onclick="saveSignature()">Opslaan</button>
+            <button class="clear" onclick="clearModal()">Wis</button>
+            <button onclick="closeModal()">Annuleren</button>
+        </div>
+    </div>
+</div>
+
+<script>
+
+// SIGNATURE DRAWING
+const mainCanvas = document.getElementById("signature");
+const modal = document.getElementById("signatureModal");
+const modalCanvas = document.getElementById("modalCanvas");
+const mCtx = modalCanvas.getContext("2d");
+let drawing=false;
+
+function openModal(){
+    modal.style.display="block";
+    modalCanvas.width = modalCanvas.clientWidth;
+    modalCanvas.height = modalCanvas.clientHeight;
+    mCtx.lineWidth = 2.5;
+    mCtx.lineCap="round";
+}
+
+function closeModal(){ modal.style.display="none"; }
+function clearModal(){ mCtx.clearRect(0,0,modalCanvas.width, modalCanvas.height); }
+
+function pos(e){
+    const r=modalCanvas.getBoundingClientRect();
+    const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+    const y=(e.touches?e.touches[0].clientY:e.clientY)-r.top;
+    return{x,y};
+}
+
+modalCanvas.onmousedown=e=>{drawing=true;const p=pos(e);mCtx.beginPath();mCtx.moveTo(p.x,p.y);}
+modalCanvas.onmousemove=e=>{if(!drawing)return;const p=pos(e);mCtx.lineTo(p.x,p.y);mCtx.stroke();}
+window.onmouseup=()=>drawing=false;
+
+modalCanvas.addEventListener("touchstart",e=>{drawing=true;const p=pos(e);mCtx.beginPath();mCtx.moveTo(p.x,p.y);e.preventDefault();},{passive:false});
+modalCanvas.addEventListener("touchmove",e=>{if(!drawing)return;const p=pos(e);mCtx.lineTo(p.x,p.y);mCtx.stroke();e.preventDefault();},{passive:false});
+
+function saveSignature(){
+    const ctx=mainCanvas.getContext("2d");
+    const w=mainCanvas.clientWidth;
+    const h=mainCanvas.clientHeight;
+    const dpr = window.devicePixelRatio||1;
+    mainCanvas.width=w*dpr;
+    mainCanvas.height=h*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.drawImage(modalCanvas,0,0,w,h);
+    document.getElementById("hintText").style.display="none";
+    closeModal();
+}
+
+function clearMain(){
+    mainCanvas.getContext("2d").clearRect(0,0,mainCanvas.width,mainCanvas.height);
+    document.getElementById("hintText").style.display="block";
+}
+
+// PDF GENERATION
+function maakPDF(){
+    html2pdf().set({
+        margin:15,
+        filename:"Werkbon_Pixia.pdf",
+        html2canvas:{scale:3, useCORS:true},
+        jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},
+        pagebreak:{mode:"css"}
+    }).from(document.getElementById("werkbon-container")).save();
+}
+
+function verstuurMail(){
+    const mail=document.getElementById("email").value;
+    if(!mail){alert("Vul e-mailadres in");return;}
+    maakPDF();
+    setTimeout(()=>{
+        window.location.href = `mailto:${mail}?subject=Werkbon Pixia B.V.&body=In de bijlage treft u de werkbon aan.`;
+    },1000);
+}
+
+</script>
+
+</body>
+</html>
