@@ -4,12 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Werkbon - Pixia B.V.</title>
-    <script src="https://cdnjs.cloudflare.com"></script>
+
+    <!-- FIX: correcte html2pdf bundel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <style>
         :root { 
             --pixia-purple: #6a2a8b; 
-            --field-height: 34px; /* Verlaagde hoogte (was 48px) */
-            --compact-width: 160px; /* Compacte breedte voor datum/uren/plaats */
+            --field-height: 34px;
+            --compact-width: 160px;
         }
         
         body { font-family: 'Segoe UI', Arial, sans-serif; color: #333; margin: 0; padding: 10px; background-color: #f0f2f5; }
@@ -34,7 +37,6 @@
             box-sizing: border-box; font-family: inherit; font-size: 14px; background: #fff;
         }
 
-        /* Compacte velden: Datum, Uren, Plaats */
         input[type="date"], 
         .compact-input { 
             height: var(--field-height); 
@@ -42,7 +44,7 @@
         }
 
         .row { display: flex; gap: 20px; margin-bottom: 12px; flex-wrap: wrap; }
-        .col-compact { flex: 0 0 auto; } /* Zorgt dat ze niet uitrekken */
+        .col-compact { flex: 0 0 auto; }
 
         .editable-area { 
             min-height: 100px; height: auto; white-space: pre-wrap; overflow-wrap: break-word; border: 1px solid #cbd5e0;
@@ -66,7 +68,7 @@
         }
 
         @media (max-width: 600px) {
-            input[type="date"], .compact-input { max-width: 100%; } /* Op smal scherm wel volledige breedte voor touch */
+            input[type="date"], .compact-input { max-width: 100%; }
             .col-compact { flex: 1 1 100%; }
         }
     </style>
@@ -76,7 +78,7 @@
 <div class="page" id="work-order">
     <div class="header">
         <div class="logo">
-            <img src="https://www.sign.nl/wp-content/uploads/2025/01/PIXIA_logo_paars.jpg" alt="Pixia Logo">
+            <img src="https://www.sign.nl" alt="Pixia Logo">
         </div>
         <div class="company-info">
             <strong>Pixia B.V.</strong><br>
