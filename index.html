@@ -8,7 +8,8 @@
     <style>
         :root { 
             --pixia-purple: #6a2a8b; 
-            --field-height: 38px; /* Centrale hoogte voor alle kleine velden */
+            --field-height: 34px; /* Verlaagde hoogte (was 48px) */
+            --compact-width: 160px; /* Compacte breedte voor datum/uren/plaats */
         }
         
         body { font-family: 'Segoe UI', Arial, sans-serif; color: #333; margin: 0; padding: 10px; background-color: #f0f2f5; }
@@ -19,45 +20,44 @@
             box-sizing: border-box; display: flex; flex-direction: column;
         }
         
-        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; }
-        .logo img { max-width: 200px; height: auto; }
-        .company-info { text-align: right; font-size: 0.85em; line-height: 1.5; color: #444; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+        .logo img { max-width: 180px; height: auto; }
+        .company-info { text-align: right; font-size: 0.8em; line-height: 1.4; color: #444; }
         
-        h1 { color: var(--pixia-purple); border-bottom: 3px solid var(--pixia-purple); padding-bottom: 8px; margin: 0 0 20px 0; font-size: 1.6em; letter-spacing: 1px; }
+        h1 { color: var(--pixia-purple); border-bottom: 2px solid var(--pixia-purple); padding-bottom: 5px; margin: 0 0 15px 0; font-size: 1.4em; }
         
-        .section { margin-bottom: 18px; }
-        label { display: block; font-weight: bold; margin-bottom: 6px; font-size: 0.85em; color: var(--pixia-purple); text-transform: uppercase; }
+        .section { margin-bottom: 12px; }
+        label { display: block; font-weight: bold; margin-bottom: 4px; font-size: 0.8em; color: var(--pixia-purple); text-transform: uppercase; }
         
-        /* Input styling */
         input, textarea, .editable-area { 
-            width: 100%; padding: 12px; border: 1px solid #cbd5e0; border-radius: 6px; 
-            box-sizing: border-box; font-family: inherit; font-size: 15px; background: #fff;
+            width: 100%; padding: 6px 10px; border: 1px solid #cbd5e0; border-radius: 4px; 
+            box-sizing: border-box; font-family: inherit; font-size: 14px; background: #fff;
         }
 
-        /* Specifieke hoogte voor de gevraagde velden */
+        /* Compacte velden: Datum, Uren, Plaats */
         input[type="date"], 
-        input[type="text"].equal-height { 
+        .compact-input { 
             height: var(--field-height); 
+            max-width: var(--compact-width); 
         }
 
-        .row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
-        .col { flex: 1; min-width: 150px; }
+        .row { display: flex; gap: 20px; margin-bottom: 12px; flex-wrap: wrap; }
+        .col-compact { flex: 0 0 auto; } /* Zorgt dat ze niet uitrekken */
 
         .editable-area { 
-            min-height: 120px; height: auto; white-space: pre-wrap; overflow-wrap: break-word; border: 1px solid #cbd5e0;
+            min-height: 100px; height: auto; white-space: pre-wrap; overflow-wrap: break-word; border: 1px solid #cbd5e0;
         }
 
-        .approval-box { border: 2px solid var(--pixia-purple); padding: 20px; background-color: #fcfaff; margin-top: auto; border-radius: 10px; }
+        .approval-box { border: 2px solid var(--pixia-purple); padding: 15px; background-color: #fcfaff; margin-top: auto; border-radius: 8px; }
         
-        .signature-wrap { background: #fff; border: 1px solid #cbd5e0; margin-top: 10px; border-radius: 6px; overflow: hidden; }
-        .signature-pad { width: 100%; height: 180px; display: block; touch-action: none; cursor: crosshair; }
+        .signature-wrap { background: #fff; border: 1px solid #cbd5e0; margin-top: 10px; border-radius: 4px; overflow: hidden; }
+        .signature-pad { width: 100%; height: 150px; display: block; touch-action: none; cursor: crosshair; }
         
-        .controls { text-align: center; margin: 25px 0; display: flex; justify-content: center; gap: 15px; }
-        button { padding: 15px 25px; cursor: pointer; border: none; border-radius: 8px; font-weight: bold; font-size: 1em; transition: 0.2s; }
+        .controls { text-align: center; margin: 20px 0; display: flex; justify-content: center; gap: 10px; }
+        button { padding: 12px 20px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; font-size: 0.9em; }
         .btn-print { background-color: #4a5568; color: white; }
         .btn-pdf { background-color: var(--pixia-purple); color: white; }
-        .btn-clear { background: #edf2f7; border: 1px solid #cbd5e0; font-size: 0.75em; padding: 6px 12px; float: right; color: #4a5568; }
-        button:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-clear { background: #edf2f7; border: 1px solid #cbd5e0; font-size: 0.7em; padding: 4px 8px; float: right; color: #4a5568; }
 
         @media print {
             .controls, .btn-clear { display: none !important; }
@@ -66,10 +66,8 @@
         }
 
         @media (max-width: 600px) {
-            .header { flex-direction: column; align-items: center; text-align: center; gap: 15px; }
-            .company-info { text-align: center; }
-            .row { flex-direction: column; gap: 10px; }
-            .col { width: 100%; }
+            input[type="date"], .compact-input { max-width: 100%; } /* Op smal scherm wel volledige breedte voor touch */
+            .col-compact { flex: 1 1 100%; }
         }
     </style>
 </head>
@@ -91,27 +89,27 @@
 
     <div class="section">
         <label>Klantgegevens:</label>
-        <textarea rows="5" placeholder="Naam, adres en contactgegevens..."></textarea>
+        <textarea rows="5" placeholder="Naam en adresgegevens..."></textarea>
     </div>
 
     <div class="row">
-        <div class="col">
+        <div class="col-compact">
             <label>Datum van:</label>
             <input type="date">
         </div>
-        <div class="col">
+        <div class="col-compact">
             <label>Datum tot:</label>
             <input type="date">
         </div>
-        <div class="col">
+        <div class="col-compact">
             <label>Aantal uren:</label>
-            <input type="text" class="equal-height" placeholder="bijv. 8,5">
+            <input type="text" class="compact-input" placeholder="bijv. 8">
         </div>
     </div>
 
     <div class="section">
         <label>Omschrijving Werkzaamheden:</label>
-        <div class="editable-area" contenteditable="true" placeholder="Beschrijf de werkzaamheden..."></div>
+        <div class="editable-area" contenteditable="true"></div>
     </div>
 
     <div class="section">
@@ -121,21 +119,21 @@
 
     <div class="section">
         <label>Opmerkingen:</label>
-        <input type="text" class="equal-height">
+        <input type="text">
     </div>
 
     <div class="approval-box">
         <button class="btn-clear" onclick="clearSignature()">Wissen</button>
         <label>Goedkeuring klant:</label>
-        <p style="font-size: 0.85em; margin: 5px 0 15px 0;">Ondergetekende verklaart dat de werkzaamheden naar behoren zijn uitgevoerd.</p>
+        <p style="font-size: 0.8em; margin: 2px 0 10px 0;">Klant gaat akkoord met de uitgevoerde werkzaamheden.</p>
         
         <div class="row">
-            <div class="col">
+            <div class="col-compact">
                 <label>Plaats:</label>
-                <input type="text" class="equal-height">
+                <input type="text" class="compact-input">
             </div>
-            <div class="col">
-                <label>Datum ondertekening:</label>
+            <div class="col-compact">
+                <label>Datum:</label>
                 <input type="date">
             </div>
         </div>
@@ -156,42 +154,29 @@
     const ctx = canvas.getContext('2d');
     let drawing = false;
 
-    // Verbeterde herstel-functie voor handtekening bij draaien scherm
     function setupCanvas() {
-        // Sla de huidige inhoud op als die er is
         let tempImage = null;
         if (canvas.width > 0 && canvas.height > 0) {
             tempImage = canvas.toDataURL();
         }
-
-        // Zet nieuwe afmetingen
         const rect = canvas.parentNode.getBoundingClientRect();
         canvas.width = rect.width * 2;
-        canvas.height = 180 * 2; // Vaste hoogte behouden
+        canvas.height = 150 * 2; 
         canvas.style.width = rect.width + 'px';
-        canvas.style.height = '180px';
-        
+        canvas.style.height = '150px';
         ctx.scale(2, 2);
-        ctx.lineWidth = 2.5;
+        ctx.lineWidth = 2;
         ctx.lineCap = "round";
-        ctx.lineJoin = "round";
         ctx.strokeStyle = "#000";
-
-        // Teken de handtekening terug als deze bestond
         if (tempImage) {
             const img = new Image();
-            img.onload = function() {
-                ctx.drawImage(img, 0, 0, rect.width, 180);
-            };
+            img.onload = () => ctx.drawImage(img, 0, 0, rect.width, 150);
             img.src = tempImage;
         }
     }
 
-    // Luister naar resize en schermoriëntatie veranderingen
     window.addEventListener('resize', setupCanvas);
-    window.addEventListener('orientationchange', () => {
-        setTimeout(setupCanvas, 200); // Korte vertraging om browser tijd te geven voor draai
-    });
+    window.addEventListener('orientationchange', () => setTimeout(setupCanvas, 300));
     setupCanvas();
 
     function getPos(e) {
@@ -201,22 +186,8 @@
         return { x: clientX - rect.left, y: clientY - rect.top };
     }
 
-    function start(e) { 
-        drawing = true; 
-        ctx.beginPath(); 
-        const p = getPos(e); 
-        ctx.moveTo(p.x, p.y); 
-        if(e.touches) e.preventDefault(); 
-    }
-    
-    function move(e) { 
-        if(!drawing) return; 
-        const p = getPos(e); 
-        ctx.lineTo(p.x, p.y); 
-        ctx.stroke(); 
-        if(e.touches) e.preventDefault(); 
-    }
-    
+    function start(e) { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); if(e.touches) e.preventDefault(); }
+    function move(e) { if(!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); if(e.touches) e.preventDefault(); }
     function stop() { drawing = false; }
 
     canvas.addEventListener('mousedown', start);
@@ -226,17 +197,15 @@
     canvas.addEventListener('touchmove', move, {passive: false});
     canvas.addEventListener('touchend', stop);
 
-    function clearSignature() { 
-        ctx.clearRect(0, 0, canvas.width, canvas.height); 
-    }
+    function clearSignature() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
     function generatePDF() {
         const element = document.getElementById('work-order');
         const opt = {
             margin: 5,
-            filename: 'Pixia_Werkbon.pdf',
+            filename: 'Werkbon_Pixia.pdf',
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+            html2canvas: { scale: 2, useCORS: true },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
         html2pdf().set(opt).from(element).save();
