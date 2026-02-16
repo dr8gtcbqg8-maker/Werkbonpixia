@@ -6,7 +6,7 @@
 <title>Werkbon - Pixia B.V.</title>
 
 <!-- html2pdf -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com"></script>
 
 <style>
 :root{
@@ -98,6 +98,7 @@ textarea{
     padding:15px;
     border-radius:8px;
     margin-top:10px;
+    overflow: hidden; /* Zorgt dat float knop binnen kader blijft */
 }
 
 .signature-wrap{
@@ -154,7 +155,7 @@ button{
 
 <div class="header">
     <div class="logo">
-        <img src="https://www.sign.nl/wp-content/uploads/2025/01/PIXIA_logo_paars.jpg" alt="Pixia Logo">
+        <img src="https://www.sign.nl" alt="Pixia Logo">
     </div>
     <div class="company-info">
         <strong>Pixia B.V.</strong><br>
@@ -167,7 +168,11 @@ button{
 
 <div class="section">
 <label>Klantgegevens</label>
-<textarea rows="5" placeholder="Naam&#10;Adres&#10;Postcode & Woonplaats&#10;Contactpersoon&#10;Telefoonnummer"></textarea>
+<textarea rows="5" placeholder="Naam
+Adres
+Postcode & Woonplaats
+Contactpersoon
+Telefoonnummer"></textarea>
 </div>
 
 <div class="section">
@@ -241,23 +246,35 @@ document.addEventListener("DOMContentLoaded",()=>{
 document.getElementById("date-from").value =
 new Date().toISOString().split("T")[0];
 
-/* ========== Handtekening ========== */
+/* ========== Handtekening met herstel bij resize ========== */
 const canvas=document.getElementById("signature-pad");
 const ctx=canvas.getContext("2d");
 let drawing=false;
 
 function resizeCanvas(){
+    // Sla huidige tekening op
+    const tempImage = canvas.toDataURL();
+    
     const ratio=window.devicePixelRatio||1;
     const rect=canvas.getBoundingClientRect();
+    
+    // Resize wist het canvas automatisch
     canvas.width=rect.width*ratio;
     canvas.height=120*ratio;
     canvas.style.width=rect.width+"px";
     canvas.style.height="120px";
     ctx.setTransform(ratio,0,0,ratio,0,0);
+
+    // Zet de handtekening direct weer terug
+    const img = new Image();
+    img.onload = function() {
+        ctx.drawImage(img, 0, 0, rect.width, 120);
+    };
+    img.src = tempImage;
 }
 
-resizeCanvas();
 window.addEventListener("resize",resizeCanvas);
+resizeCanvas(); // Eerste keer laden
 
 function getPos(e){
     const rect=canvas.getBoundingClientRect();
@@ -307,14 +324,11 @@ document.getElementById("print")
 /* ========== PDF ========== */
 document.getElementById("pdf")
 .addEventListener("click",()=>{
-
     if(typeof html2pdf==="undefined"){
         alert("PDF bibliotheek niet geladen.");
         return;
     }
-
     const element=document.getElementById("work-order");
-
     html2pdf().set({
         margin:0,
         filename:"werkbon_pixia.pdf",
